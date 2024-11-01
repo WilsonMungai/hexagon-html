@@ -6,15 +6,13 @@
 </html>
 
 <script type="text/javascript">
-  const drawHexagon = function(radius, canvas, ctx) {
-    const originX = canvas.width / 2;
-    const originY = canvas.height / 2;
+  const drawHexagon = function(radius, centerX, centerY, ctx) {
     const sides = 6;
     ctx.beginPath();
     for (let i = 0; i < sides; i++) {
       const angle = (Math.PI / 3) * i;
-      const x = originX + radius * Math.cos(angle);
-      const y = originY + radius * Math.sin(angle);
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
@@ -44,19 +42,23 @@
     ctx.scale(scaleFactor, scaleFactor);
     ctx.imageSmoothingEnabled = true;
 
+    // Center coordinates (unscaled) for the hexagons and image
+    const hexCenterX = window.innerWidth / 2;
+    const hexCenterY = window.innerHeight / 2;
+
     // Clear the canvas for each drawing
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw the outer hexagon
     setBorder(info.OuterBorderSize, info.OuterBorderColor, ctx);
-    drawHexagon(info.OuterRadius, canvas, ctx);
+    drawHexagon(info.OuterRadius, hexCenterX, hexCenterY, ctx);
     ctx.stroke();
     fillShape(info.OuterColor, ctx);
 
     // Draw the inner hexagon and clip the region
     ctx.save();
     setBorder(info.InnerBorderSize, info.InnerBorderColor, ctx);
-    drawHexagon(info.InnerRadius, canvas, ctx);
+    drawHexagon(info.InnerRadius, hexCenterX, hexCenterY, ctx);
     ctx.stroke();
     fillShape(info.InnerColor, ctx);
     ctx.clip();
@@ -65,8 +67,6 @@
     const image = new Image();
     image.src = info.ImageUrl;
     image.onload = function() {
-      const hexCenterX = canvas.width / (2 * scaleFactor);
-      const hexCenterY = canvas.height / (2 * scaleFactor);
       const boundingDiameter = info.InnerRadius * 2;
 
       // Calculate cover dimensions
@@ -81,6 +81,7 @@
         drawHeight = boundingDiameter / imgAspect;
       }
 
+      // Center the image within the hexagon’s bounding circle
       const x = hexCenterX - drawWidth / 2;
       const y = hexCenterY - drawHeight / 2;
       ctx.drawImage(image, x, y, drawWidth, drawHeight);
@@ -90,14 +91,14 @@
 
   const hexagonInfo = {
     OuterRadius: 150,
-    OuterBorderSize: 10,
-    OuterBorderColor: "#F2994A",
-    OuterColor: "#333746",
+    OuterBorderSize: 5,
+    OuterBorderColor: "black",
+    OuterColor: "lightblue",
 
-    InnerRadius: 120,
-    InnerBorderSize: 30,
-    InnerBorderColor: "#333746",
-    InnerColor: "white",
+    InnerRadius: 75,
+    InnerBorderSize: 3,
+    InnerBorderColor: "blue",
+    InnerColor: "lightgreen",
 
     ImageUrl: "https://res.cloudinary.com/dv5nceoht/image/upload/v1730237770/img-ys5z0LkARW8OE3Ln67o6FLbA.png_kgjhb9.png" // Replace with a high-res image URL
   };
