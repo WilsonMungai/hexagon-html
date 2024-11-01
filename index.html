@@ -13,7 +13,6 @@
     const sides = 6; // Hexagon has 6 sides
 
     ctx.beginPath();
-
     for (let i = 0; i < sides; i++) {
       const angle = (Math.PI / 3) * i; // 60 degrees in radians
       const x = originX + radius * Math.cos(angle);
@@ -40,42 +39,81 @@
     ctx.fill();
   };
 
-  // Main function to draw the outer and inner hexagon shapes
-  const drawHexagons = function(info) {
-    const canvas = document.getElementById("canvas");
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-    const ctx = canvas.getContext("2d");
+// Function to draw the outer and inner hexagon and place an image inside the inner hexagon
+const drawHexagonsWithImage = function(info) {
+  const canvas = document.getElementById("canvas");
+  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
+  const ctx = canvas.getContext("2d");
 
-    // Clear the canvas for each drawing
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Clear the canvas for each drawing
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw the outer hexagon
-    setBorder(info.OuterBorderSize, info.OuterBorderColor, ctx);
-    drawHexagon(info.OuterRadius, canvas, ctx);
-    ctx.stroke();
-    fillShape(info.OuterColor, ctx);
+  // Draw the outer hexagon
+  setBorder(info.OuterBorderSize, info.OuterBorderColor, ctx);
+  drawHexagon(info.OuterRadius, canvas, ctx);
+  ctx.stroke();
+  fillShape(info.OuterColor, ctx);
 
-    // Draw the inner hexagon
-    setBorder(info.InnerBorderSize, info.InnerBorderColor, ctx);
-    drawHexagon(info.InnerRadius, canvas, ctx);
-    ctx.stroke();
-    fillShape(info.InnerColor, ctx);
+  // Draw the inner hexagon and clip the region
+  ctx.save(); // Save the context state
+  setBorder(info.InnerBorderSize, info.InnerBorderColor, ctx);
+  drawHexagon(info.InnerRadius, canvas, ctx);
+  ctx.stroke();
+  fillShape(info.InnerColor, ctx);
+  ctx.clip(); // Clip to the inner hexagon's shape
+
+  // Load the image and draw it inside the inner hexagon with cover aspect ratio
+  const image = new Image();
+  image.src = info.ImageUrl;
+  image.onload = function() {
+    const hexCenterX = canvas.width / 2;
+    const hexCenterY = canvas.height / 2;
+
+    // Calculate the bounding circle diameter
+    const boundingDiameter = info.InnerRadius * 2;
+
+    // Draw the image centered inside the hexagon with cover effect
+    const imgAspect = image.width / image.height;
+    const circleAspect = 1; // The circle has an aspect ratio of 1:1
+
+    let drawWidth, drawHeight;
+    if (imgAspect > circleAspect) {
+      // Image is wider than the bounding circle: adjust width to cover
+      drawWidth = boundingDiameter * imgAspect;
+      drawHeight = boundingDiameter;
+    } else {
+      // Image is taller than the bounding circle: adjust height to cover
+      drawWidth = boundingDiameter;
+      drawHeight = boundingDiameter / imgAspect;
+    }
+
+    // Center the image within the hexagon’s bounding circle
+    const x = hexCenterX - drawWidth / 2;
+    const y = hexCenterY - drawHeight / 2;
+
+    // Draw the image within the clipped area
+    ctx.drawImage(image, x, y, drawWidth, drawHeight);
+    ctx.restore(); // Restore the context to remove the clipping region
   };
+};
 
-  // Sample properties for outer and inner hexagons
-  const hexagonInfo = {
-    OuterRadius: 150,         // Radius of the outer hexagon
-    OuterBorderSize: 10,       // Border size for the outer hexagon
-    OuterBorderColor: "#F2994A",// Border color for the outer hexagon
-    OuterColor: "#333746",  // Fill color for the outer hexagon
+// Sample properties for outer and inner hexagons, including an image URL
+const hexagonInfo = {
+  OuterRadius: 150,             // Radius of the outer hexagon
+  OuterBorderSize: 10,           // Border size for the outer hexagon
+  OuterBorderColor: "#F2994A",    // Border color for the outer hexagon
+  OuterColor: "#333746",      // Fill color for the outer hexagon
 
-    InnerRadius: 120,          // Radius of the inner hexagon (smaller than outer)
-    InnerBorderSize: 30,       // Border size for the inner hexagon
-    InnerBorderColor: "#333746", // Border color for the inner hexagon
-    InnerColor: "white"  // Fill color for the inner hexagon
-  };
+  InnerRadius: 120,              // Radius of the inner hexagon (smaller than outer)
+  InnerBorderSize: 30,           // Border size for the inner hexagon
+  InnerBorderColor: "#333746",     // Border color for the inner hexagon
+  InnerColor: "white",     // Fill color for the inner hexagon
 
-  // Call drawHexagons with the specified properties
-  drawHexagons(hexagonInfo);
+  ImageUrl: "https://res.cloudinary.com/dv5nceoht/image/upload/v1730237770/img-ys5z0LkARW8OE3Ln67o6FLbA.png_kgjhb9.png" // URL of the image to display in the inner hexagon
+};
+
+// Call drawHexagonsWithImage with the specified properties
+drawHexagonsWithImage(hexagonInfo);
+
 </script>
