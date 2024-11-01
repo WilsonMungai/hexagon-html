@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <body style="margin: 0px">
+    <canvas id="canvas" height="500" width="500"></canvas>
+  </body>
+</html>
+
+<script type="text/javascript">
+  // Function to draw a hexagon on the canvas
+  const drawHexagon = function(radius, canvas, ctx) {
+    const originX = canvas.width / 2;
+    const originY = canvas.height / 2;
+    const sides = 6; // Hexagon has 6 sides
+
+    ctx.beginPath();
+
+    for (let i = 0; i < sides; i++) {
+      const angle = (Math.PI / 3) * i; // 360 degrees / 6 = 60 degrees in radians
+      const x = originX + radius * Math.cos(angle);
+      const y = originY + radius * Math.sin(angle);
+
+      if (i === 0) {
+        ctx.moveTo(x, y); // Start at the first vertex
+      } else {
+        ctx.lineTo(x, y); // Draw line to the next vertex
+      }
+    }
+    ctx.closePath(); // Close the path to complete the hexagon
+  };
+
+  // Function to set the stroke (border) properties
+  const setBorder = function(borderSize, borderColor, ctx) {
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = borderSize;
+  };
+
+  // Function to fill the shape with a specified color
+  const fillShape = function(color, ctx) {
+    ctx.fillStyle = color;
+    ctx.fill();
+  };
+
+  // Main function to draw the hexagon shape with given properties
+  const drawShape = function(info) {
+    const canvas = document.getElementById("canvas");
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    const ctx = canvas.getContext("2d");
+
+    // Clear the canvas for each drawing
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Set the border for the hexagon
+    setBorder(info.BorderSize, info.BorderColor, ctx);
+
+    // Draw the hexagon shape
+    drawHexagon(info.Radius, canvas, ctx);
+
+    // Stroke and fill the hexagon
+    ctx.stroke();
+    fillShape(info.Color, ctx);
+  };
+
+  // Sample properties to draw a hexagon
+  const hexagonInfo = {
+    Radius: 100,         // Radius from center to each vertex
+    BorderSize: 5,       // Border thickness
+    BorderColor: "black",// Border color
+    Color: "skyblue"     // Fill color
+  };
+
+  // Call drawShape with the hexagon information
+  drawShape(hexagonInfo);
+</script>
