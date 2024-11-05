@@ -1,11 +1,16 @@
-<!DOCTYPE html>
 <html>
   <body style="margin: 0px">
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" height="10" width="10"></canvas>
   </body>
 </html>
 
+<script
+  src="https://thunkable.github.io/webviewer-extension/thunkableWebviewerExtension.js"
+  type="text/javascript"
+></script>
+
 <script type="text/javascript">
+  // Draws a hexagon
   const drawHexagon = function(radius, centerX, centerY, ctx) {
     const sides = 6;
     ctx.beginPath();
@@ -19,21 +24,24 @@
     ctx.closePath();
   };
 
+  // Sets border properties
   const setBorder = function(borderSize, borderColor, ctx) {
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderSize;
   };
 
+  // Fills shape with color
   const fillShape = function(color, ctx) {
     ctx.fillStyle = color;
     ctx.fill();
   };
 
+  // Draws hexagons and image
   const drawHexagonsWithImage = function(info) {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    // Set up high-resolution canvas for sharpness on high-DPI displays
+    // Set up high-resolution canvas
     const scaleFactor = window.devicePixelRatio || 1;
     canvas.width = window.innerWidth * scaleFactor;
     canvas.height = window.innerHeight * scaleFactor;
@@ -42,20 +50,18 @@
     ctx.scale(scaleFactor, scaleFactor);
     ctx.imageSmoothingEnabled = true;
 
-    // Center coordinates (unscaled) for the hexagons and image
     const hexCenterX = window.innerWidth / 2;
     const hexCenterY = window.innerHeight / 2;
 
-    // Clear the canvas for each drawing
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw the outer hexagon
+    // Draw outer hexagon
     setBorder(info.OuterBorderSize, info.OuterBorderColor, ctx);
     drawHexagon(info.OuterRadius, hexCenterX, hexCenterY, ctx);
     ctx.stroke();
     fillShape(info.OuterColor, ctx);
 
-    // Draw the inner hexagon and clip the region
+    // Draw inner hexagon and clip the region
     ctx.save();
     setBorder(info.InnerBorderSize, info.InnerBorderColor, ctx);
     drawHexagon(info.InnerRadius, hexCenterX, hexCenterY, ctx);
@@ -81,7 +87,6 @@
         drawHeight = boundingDiameter / imgAspect;
       }
 
-      // Center the image within the hexagon’s bounding circle
       const x = hexCenterX - drawWidth / 2;
       const y = hexCenterY - drawHeight / 2;
       ctx.drawImage(image, x, y, drawWidth, drawHeight);
@@ -89,19 +94,20 @@
     };
   };
 
-  const hexagonInfo = {
-    OuterRadius: 150,
-    OuterBorderSize: 10,
-    OuterBorderColor: "#F2994A",
-    OuterColor: "#333746",
+  // Listen for messages from Thunkable
+  ThunkableWebviewerExtension.receiveMessage(function(message) {
+    try {
+      const msgFromApp = JSON.parse(message);
+      if (msgFromApp.type === "drawHexagon") {
+        drawHexagonsWithImage(msgFromApp.info);
+      }
+    } catch (e) {
+      console.error("Failed to parse message:", e);
+    }
+  });
 
-    InnerRadius: 120,
-    InnerBorderSize: 30,
-    InnerBorderColor: "#333746",
-    InnerColor: "white",
-
-    ImageUrl: "https://res.cloudinary.com/dv5nceoht/image/upload/v1730237770/img-ys5z0LkARW8OE3Ln67o6FLbA.png_kgjhb9.png" // Replace with a high-res image URL
-  };
-
-  drawHexagonsWithImage(hexagonInfo);
+  // Notify Thunkable that the page is ready
+  ThunkableWebviewerExtension.postMessage(
+    JSON.stringify({ type: "pageLoaded" })
+  );
 </script>
